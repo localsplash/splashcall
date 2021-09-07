@@ -1,2 +1,2 @@
 # splashcall
-Splash Call App
+Splash Call App for Android
