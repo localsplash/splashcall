@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".DialPad">
+
+
+    <TextView
+        android:id="@+id/mobile_number_text_view"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="60dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginRight="20dp"
+        android:gravity="center"
+        android:text="Could Not Connect..."
+        android:textSize="30sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+
+    <GridLayout
+        android:id="@+id/dialPad_row_one_layout"
+        android:layout_width="270dp"
+        android:layout_height="70dp"
+        android:layout_marginTop="30dp"
+        android:columnCount="5"
+        android:rowCount="1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/mobile_number_text_view">
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:background="@drawable/dialpad_button_background"
+            android:text="7"
+            android:textSize="30sp" />
+
+        <View
+            android:layout_width="30dp"
+            android:layout_height="match_parent" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:background="@drawable/dialpad_button_background"
+            android:text="8"
+            android:textSize="30sp" />
+
+        <View
+            android:layout_width="30dp"
+            android:layout_height="match_parent" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:background="@drawable/dialpad_button_background"
+            android:text="9"
+            android:textSize="30sp" />
+
+
+    </GridLayout>
+
+    <GridLayout
+        android:id="@+id/dialPad_row_two_layout"
+        android:layout_width="270dp"
+        android:layout_height="70dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginRight="20dp"
+        android:columnCount="5"
+        android:rowCount="1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/dialPad_row_one_layout">
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:background="@drawable/dialpad_button_background"
+            android:text="4"
+            android:textSize="30sp" />
+
+        <View
+            android:layout_width="30dp"
+            android:layout_height="match_parent" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:background="@drawable/dialpad_button_background"
+            android:text="5"
+            android:textSize="30sp" />
+
+        <View
+            android:layout_width="30dp"
+            android:layout_height="match_parent" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:background="@drawable/dialpad_button_background"
+            android:text="6"
+            android:textSize="30sp" />
+    </GridLayout>
+
+    <GridLayout
+        android:id="@+id/dialPad_row_three_layout"
+        android:layout_width="270dp"
+        android:layout_height="70dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="20dp"
+        android:columnCount="5"
+        android:rowCount="1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/dialPad_row_two_layout">
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:background="@drawable/dialpad_button_background"
+            android:text="1"
+            android:textSize="30sp" />
+
+        <View
+            android:layout_width="30dp"
+            android:layout_height="match_parent" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:background="@drawable/dialpad_button_background"
+            android:text="2"
+            android:textSize="30sp" />
+
+        <View
+            android:layout_width="30dp"
+            android:layout_height="match_parent" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:background="@drawable/dialpad_button_background"
+            android:text="3"
+            android:textSize="30sp" />
+    </GridLayout>
+
+    <GridLayout
+        android:id="@+id/dialPad_row_four_layout"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginRight="20dp"
+        android:columnCount="5"
+        android:rowCount="1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/dialPad_row_three_layout">
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:background="@drawable/dialpad_button_background"
+            android:text="0"
+            android:textSize="30sp" />
+
+    </GridLayout>
+
+
+    <GridLayout
+        android:id="@+id/dialPad_row_five_layout"
+        android:layout_width="90dp"
+        android:layout_height="90dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="41dp"
+        android:columnCount="5"
+        android:rowCount="1"
+
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/dialPad_row_four_layout">
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:tint="#ffffff"
+            android:src="@drawable/ic_baseline_local_phone_24"
+            android:background="@drawable/make_a_call_button_background"
+            android:layout_width="90dp"
+            android:layout_height="90dp"
+            android:textSize="30sp" />
+
+    </GridLayout>
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
