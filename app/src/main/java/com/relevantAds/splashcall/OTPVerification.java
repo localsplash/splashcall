@@ -109,7 +109,7 @@ public class OTPVerification extends AppCompatActivity {
                     Log.d("response","success");
                     switch (response.code()){
                         case 200:
-                            showInfo("Success","OTP Generated Successfully.");
+                            showInfo("Success","OTP has been Generated Successfully.");
                             break;
                     }
                     try {
