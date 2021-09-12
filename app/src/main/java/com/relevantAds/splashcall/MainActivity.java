@@ -1,5 +1,7 @@
 package com.relevantAds.splashcall;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
@@ -7,10 +9,13 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.media.MediaRouter;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -24,6 +29,12 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.credentials.Credential;
+import com.google.android.gms.auth.api.credentials.CredentialPickerConfig;
+import com.google.android.gms.auth.api.credentials.HintRequest;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.gun0912.tedpermission.PermissionListener;
@@ -54,7 +65,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class MainActivity extends AppCompatActivity implements RecyclerTouchListener.RecyclerTouchListenerHelper {
+public class MainActivity extends AppCompatActivity implements RecyclerTouchListener.RecyclerTouchListenerHelper, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
 
 
     public ArrayList<PhoneNumber> mobileNumbersList = new ArrayList<>();
@@ -75,12 +86,22 @@ public class MainActivity extends AppCompatActivity implements RecyclerTouchList
     String generatedUUID;
     private DatabaseHelper db;
     private SharedPreferences deviceDataPrefs;
+    public static final String TAG = MainActivity.class.getSimpleName();
+    private GoogleApiClient mCredentialsApiClient;
+    private static final int RC_HINT = 1000;
 
 
     @Override
         protected void onCreate(Bundle savedInstanceState) {
                 super.onCreate(savedInstanceState);
                 setContentView(R.layout.activity_main);
+
+        mCredentialsApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .enableAutoManage(this, this)
+                .addApi(Auth.CREDENTIALS_API)
+                .build();
+        requestPhoneNumber();
 
 
                 Toolbar toolbar = findViewById(R.id.toolbar_launch_screen);
@@ -97,6 +118,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerTouchList
                     @Override
                     public void onClick(View view) {
                         Intent addCustomNumber = new Intent(MainActivity.this,AddNewNumber.class);
+
                         startActivityForResult(addCustomNumber,1);
                     }
                 });
@@ -149,7 +171,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerTouchList
         mobileNumbersList.addAll(db.getAllNumbers());
 
         if (mobileNumbersList.size() == 0){
-            displayEmpty();
+            displayEmpty("","");
         }else{
             displayMobileNumbers();
         }
@@ -167,34 +189,36 @@ public class MainActivity extends AppCompatActivity implements RecyclerTouchList
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-
+                Log.d("response",response.code()+"");
                 if (response.isSuccessful()){
                     Log.d("response","success");
+
                     try {
+                        switch (response.code()){
+                            case 202:
+                                generateOTPSMSRequest(mobileNumber,uuid);
+                                break;
+                            case 200:
+                                SharedPreferences.Editor e = deviceDataPrefs.edit();
+                                e.putLong(DeviceData.LOCAL_PHONE_NUMBER,number);
+                                e.apply();
 
-                        if (response.code() ==  200){
 
-                            // Login Successful
-                            // Save Number to Shared Preferences
-
-                            SharedPreferences.Editor e = deviceDataPrefs.edit();
-                            e.putLong(DeviceData.LOCAL_PHONE_NUMBER,number);
-                            e.apply();
-
-
-                            // Send SIP Settings received to the Dial Pad Screen
-                            JSONObject responseObj = new JSONObject(response.body().string());
-                            JSONObject sipObject = responseObj.getJSONObject("sipSettings");
-                            int iMemberID = sipObject.getInt("iMemberID");
-                            String sipServerIP = sipObject.getString("sipServerIP");
-                            String sipExtension = sipObject.getString("sipExtension");
-                            String secret = sipObject.getString("secret");
-                            Intent dialPad = new Intent(MainActivity.this,DialPad.class);
-                            dialPad.putExtra("iMemberID",iMemberID);
-                            dialPad.putExtra("sipServerIP",sipServerIP);
-                            dialPad.putExtra("sipExtension",sipExtension);
-                            dialPad.putExtra("secret",secret);
-                            startActivity(dialPad);
+                                // Send SIP Settings received to the Dial Pad Screen
+                                JSONObject responseObj = new JSONObject(response.body().string());
+                                Log.d("response",responseObj.toString());
+                                JSONObject sipObject = responseObj.getJSONObject("sipSettings");
+                                int iMemberID = sipObject.getInt("iMemberID");
+                                String sipServerIP = sipObject.getString("sipServerIP");
+                                String sipExtension = sipObject.getString("sipExtension");
+                                String secret = sipObject.getString("secret");
+                                Intent dialPad = new Intent(MainActivity.this,DialPad.class);
+                                dialPad.putExtra("iMemberID",iMemberID);
+                                dialPad.putExtra("sipServerIP",sipServerIP);
+                                dialPad.putExtra("sipExtension",sipExtension);
+                                dialPad.putExtra("secret",secret);
+                                startActivity(dialPad);
+                                break;
                         }
 
                     } catch (JSONException e) {
@@ -220,6 +244,14 @@ public class MainActivity extends AppCompatActivity implements RecyclerTouchList
                             loadingProgressDialogue.dismissDialogue(MainActivity.this);
                             showInfo("Attempts Limit Reached.","Too many requests, please wait a few minutes before retrying.");
                             break;
+                        case 402:
+                            loadingProgressDialogue.dismissDialogue(MainActivity.this);
+                            showInfo("Payment Required.","Your account has been suspended due to non payment.");
+                            break;
+                        case 404:
+                            loadingProgressDialogue.dismissDialogue(MainActivity.this);
+                            showInfo("Device Not Found.","This device does not exist and the phone number is invalid.");
+                            break;
 
                     }
                 }
@@ -235,7 +267,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerTouchList
     }
 
     public void generateOTPSMSRequest(String mobileNumber, String uuid){
-
         apiService =
                 ApiClient.getClient(35).create(ApiInterface.class);
 
@@ -266,6 +297,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerTouchList
                     }
                 }else{
                     switch (response.code()){
+
                         case 400:
                             showInfo("Attempts Limit Reached.","Too many requests, please wait a few minutes before retrying.");
                             break;
@@ -283,10 +315,27 @@ public class MainActivity extends AppCompatActivity implements RecyclerTouchList
             }
         });
     }
+    private void showHint() {
+//        ui.clearKeyboard();
+        HintRequest hintRequest = new HintRequest.Builder()
+                .setHintPickerConfig(new CredentialPickerConfig.Builder()
+                        .setShowCancelButton(true)
+                        .build())
+                .setPhoneNumberIdentifierSupported(true)
+                .build();
 
-    public void displayEmpty(){
-        errorTopText.setText("Could Not Fetch Mobile Numbers.");
-        errorBottomText.setText("You can add your number by clicking button None Of The Above at bottom.");
+        PendingIntent intent =
+                Auth.CredentialsApi.getHintPickerIntent(mCredentialsApiClient, hintRequest);
+        try {
+            startIntentSenderForResult(intent.getIntentSender(), RC_HINT, null, 0, 0, 0);
+        } catch (IntentSender.SendIntentException e) {
+            Log.e(TAG, "Could not start hint picker Intent", e);
+        }
+    }
+
+    public void displayEmpty(String title, String message){
+        errorTopText.setText(title);
+        errorBottomText.setText(message);
         errorLayout.setVisibility(View.VISIBLE);
         mobileNumbersRV.setVisibility(View.GONE);
     }
@@ -347,8 +396,64 @@ public class MainActivity extends AppCompatActivity implements RecyclerTouchList
         super.onPause();
         mobileNumbersRV.removeOnItemTouchListener(onTouchListener);
     }
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+//    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+//        if (requestCode == 1) {
+//            if(resultCode == RESULT_OK) {
+//                enteredMobileNumber = data.getStringExtra("added_number");
+//                db.insertPhoneNumber(enteredMobileNumber);
+//                fetchMobileNumbers();
+//            }
+//        }
+//    }
+
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        Log.d(TAG, "Connected");
+    }
+
+    @Override
+    public void onConnectionSuspended(int cause) {
+        Log.d(TAG, "GoogleApiClient is suspended with cause code: " + cause);
+        displayEmpty("Couldn't Fetch Mobile Number","You can add mobile numbers here by clicking the button below.");
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Log.d(TAG, "GoogleApiClient failed to connect: " + connectionResult);
+        displayEmpty("Couldn't Fetch Mobile Number","You can add mobile numbers here by clicking the button below.");
+
+    }
+    public void requestPhoneNumber() {
+        HintRequest hintRequest = new HintRequest.Builder()
+                .setPhoneNumberIdentifierSupported(true)
+                .build();
+
+        PendingIntent intent = Auth.CredentialsApi.getHintPickerIntent(mCredentialsApiClient, hintRequest);
+        try {
+            startIntentSenderForResult(intent.getIntentSender(), 10, null, 0, 0, 0);
+        } catch (IntentSender.SendIntentException e) {
+            Log.e(TAG, "Could not start hint picker Intent", e);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 10) {
+            if (resultCode == RESULT_OK) {
+                Credential cred = data.getParcelableExtra(Credential.EXTRA_KEY);
+                if (cred.getId().length() > 0){
+                    sendLoginRequest(cred.getId(),generatedUUID);
+                }
+            }
+            else{
+                displayEmpty("Couldn't Fetch Mobile Number","You can add mobile numbers here by clicking the button below.");
+
+            }
+
+        }
         if (requestCode == 1) {
             if(resultCode == RESULT_OK) {
                 enteredMobileNumber = data.getStringExtra("added_number");
@@ -357,6 +462,4 @@ public class MainActivity extends AppCompatActivity implements RecyclerTouchList
             }
         }
     }
-
-
 }

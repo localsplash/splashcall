@@ -92,7 +92,6 @@ public class SplashScreen extends AppCompatActivity {
     }
 
     public void sendLoginRequest(String generatedUUID,long localPhoneNumber){
-        loadingProgressDialogue.showDialog(SplashScreen.this);
         apiService =
                 ApiClient.getClient(35).create(ApiInterface.class);
 
