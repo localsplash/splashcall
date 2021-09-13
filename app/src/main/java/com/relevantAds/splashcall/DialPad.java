@@ -3,9 +3,22 @@ package com.relevantAds.splashcall;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatButton;
+import androidx.appcompat.widget.AppCompatImageButton;
 
+import android.content.Context;
+import android.content.Intent;
+import android.media.AudioManager;
+import android.media.ToneGenerator;
 import android.os.Bundle;
+import android.os.Vibrator;
+import android.telephony.PhoneNumberFormattingTextWatcher;
+import android.text.Editable;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import org.linphone.core.Account;
@@ -40,7 +53,7 @@ import org.linphone.core.TransportType;
 import org.linphone.core.Transports;
 import org.linphone.core.VersionUpdateCheckResult;
 
-public class DialPad extends AppCompatActivity {
+public class DialPad extends AppCompatActivity implements View.OnClickListener, View.OnLongClickListener {
 
     public int iMemberID;
     public String sipServerIP;
@@ -48,20 +61,98 @@ public class DialPad extends AppCompatActivity {
     public String secret;
     public Core core;
     public TransportType transportType;
+    public AppCompatButton buttonStar;
+    public AppCompatButton buttonHash;
+    public AppCompatButton buttonZero;
+    public AppCompatButton buttonOne;
+    public AppCompatButton buttonTwo;
+    public AppCompatButton buttonThree;
+    public AppCompatButton buttonFour;
+    public AppCompatButton buttonFive;
+    public AppCompatButton buttonSix;
+    public AppCompatButton buttonSeven;
+    public AppCompatButton buttonEight;
+    public AppCompatButton buttonNine;
 
-    public TextView mobileNumberTextView;
+    public EditText typedPhoneNumber;
+    public AppCompatImageButton backSpaceButton;
+
+    private Vibrator mVibrator;
+    private static final int DURATION = 50; // Vibrate duration
+
+
+    public AppCompatImageButton makeAPhoneCall;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dial_pad);
 
+        mVibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+
+        //find all related views
+        buttonStar = findViewById(R.id.dial_pad_button_star);
+        buttonHash = findViewById(R.id.dial_pad_button_hash);
+        buttonZero = findViewById(R.id.dial_pad_button_zero);
+        buttonOne = findViewById(R.id.dial_pad_button_one);
+        buttonTwo = findViewById(R.id.dial_pad_button_two);
+        buttonThree = findViewById(R.id.dial_pad_button_three);
+        buttonFour = findViewById(R.id.dial_pad_button_four);
+        buttonFive = findViewById(R.id.dial_pad_button_five);
+        buttonSix = findViewById(R.id.dial_pad_button_six);
+        buttonSeven = findViewById(R.id.dial_pad_button_seven);
+        buttonEight = findViewById(R.id.dial_pad_button_eight);
+        buttonNine = findViewById(R.id.dial_pad_button_nine);
+        typedPhoneNumber = findViewById(R.id.typed_mobile_number_editText);
+        backSpaceButton = findViewById(R.id.back_space_button);
+        makeAPhoneCall = findViewById(R.id.dial_pad_button_make_a_call);
+
+
+//        typedPhoneNumber.addTextChangedListener(new PhoneNumberFormattingTextWatcher());
+
+
+        // set click listeners.
+        buttonStar.setOnClickListener(this);
+        buttonHash.setOnClickListener(this);
+        buttonZero.setOnClickListener(this);
+        buttonZero.setOnLongClickListener(this);
+        buttonOne.setOnClickListener(this);
+        buttonTwo.setOnClickListener(this);
+        buttonThree.setOnClickListener(this);
+        buttonFour.setOnClickListener(this);
+        buttonFive.setOnClickListener(this);
+        buttonSix.setOnClickListener(this);
+        buttonSeven.setOnClickListener(this);
+        buttonEight.setOnClickListener(this);
+        buttonNine.setOnClickListener(this);
+        makeAPhoneCall.setOnClickListener(this);
+
+        backSpaceButton.setOnClickListener(this);
+        backSpaceButton.setOnLongClickListener(this);
+
         Factory factory = Factory.instance();
         factory.setDebugMode(true, "Hello Linphone");
         core = factory.createCore(null,null,DialPad.this);
 
 
-        mobileNumberTextView = findViewById(R.id.mobile_number_text_view);
+
+        makeAPhoneCall.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (typedPhoneNumber.getText().toString().length() == 0){
+                    return;
+                }
+                String numberToMakeACall = typedPhoneNumber.getText().toString();
+                Intent outGoingCallActivity = new Intent(DialPad.this,OutgoingCall.class);
+                outGoingCallActivity.putExtra("number_to_make_a_call",numberToMakeACall);
+                outGoingCallActivity.putExtra("iMemberID",iMemberID);
+                outGoingCallActivity.putExtra("sipServerIP",sipServerIP);
+                outGoingCallActivity.putExtra("sipExtension",sipExtension);
+                outGoingCallActivity.putExtra("secret",secret);
+
+                startActivity(outGoingCallActivity);
+            }
+        });
 
         Bundle extras = getIntent().getExtras();
         if (extras != null){
@@ -341,5 +432,84 @@ public class DialPad extends AppCompatActivity {
         });
         core.start();
 
+    }
+    private void keyPressed(int keyCode) {
+        AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        int volume_level= am.getStreamVolume(AudioManager.STREAM_RING); // Highest Ring volume level is 7, lowest is 0
+        final ToneGenerator mToneGenerator = new ToneGenerator(AudioManager.STREAM_MUSIC, volume_level * 14); // Raising volume to 100% (For eg. 7 * 14 ~ 100)
+        mToneGenerator.stopTone();
+        mToneGenerator.startTone(ToneGenerator.TONE_DTMF_1, 50);
+        KeyEvent event = new KeyEvent(KeyEvent.ACTION_DOWN, keyCode);
+        typedPhoneNumber.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    public void onClick(View view) {
+
+        switch (view.getId()){
+            case R.id.dial_pad_button_zero:
+                keyPressed(KeyEvent.KEYCODE_0);
+                return;
+            case R.id.dial_pad_button_star:
+                keyPressed(KeyEvent.KEYCODE_STAR);
+                return;
+            case R.id.dial_pad_button_hash:
+                keyPressed(KeyEvent.KEYCODE_POUND);
+                return;
+            case R.id.dial_pad_button_one:
+                keyPressed(KeyEvent.KEYCODE_1);
+                return;
+            case R.id.dial_pad_button_two:
+                keyPressed(KeyEvent.KEYCODE_2);
+                return;
+            case R.id.dial_pad_button_three:
+                keyPressed(KeyEvent.KEYCODE_3);
+                return;
+            case R.id.dial_pad_button_four:
+                keyPressed(KeyEvent.KEYCODE_4);
+                return;
+            case R.id.dial_pad_button_five:
+                keyPressed(KeyEvent.KEYCODE_5);
+                return;
+            case R.id.dial_pad_button_six:
+                keyPressed(KeyEvent.KEYCODE_6);
+                return;
+            case R.id.dial_pad_button_seven:
+                keyPressed(KeyEvent.KEYCODE_7);
+                return;
+            case R.id.dial_pad_button_eight:
+                keyPressed(KeyEvent.KEYCODE_8);
+                return;
+            case R.id.dial_pad_button_nine:
+                keyPressed(KeyEvent.KEYCODE_9);
+                return;
+            case R.id.back_space_button:
+                keyPressed(KeyEvent.KEYCODE_DEL);
+                return;
+
+
+        }
+
+    }
+
+    @Override
+    public boolean onLongClick(View view) {
+        AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        int volume_level= am.getStreamVolume(AudioManager.STREAM_RING); // Highest Ring volume level is 7, lowest is 0
+        final ToneGenerator mToneGenerator = new ToneGenerator(AudioManager.STREAM_MUSIC, volume_level * 14); // Raising volume to 100% (For eg. 7 * 14 ~ 100)
+        mToneGenerator.stopTone();
+        mToneGenerator.startTone(ToneGenerator.TONE_DTMF_1, 100);
+        switch (view.getId()){
+            case R.id.back_space_button:
+                Editable digits = typedPhoneNumber.getText();
+                digits.clear();
+                return true;
+            case R.id.dial_pad_button_zero: {
+                keyPressed(KeyEvent.KEYCODE_PLUS);
+                return true;
+            }
+        }
+
+        return false;
     }
 }

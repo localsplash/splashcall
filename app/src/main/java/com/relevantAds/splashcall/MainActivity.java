@@ -259,6 +259,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerTouchList
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
+                loadingProgressDialogue.dismissDialogue(MainActivity.this);
                 showInfo("Something Went Wrong","Please try again later.");
 
             }
@@ -311,6 +312,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerTouchList
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
+                loadingProgressDialogue.dismissDialogue(MainActivity.this);
                 showInfo("Something Went Wrong","Please try again later.");
             }
         });

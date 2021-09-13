@@ -10,6 +10,7 @@
 
     <color name="secondaryColor">#F27220</color>
     <color name="secondaryColorDark">#C15510</color>
+    <color name="primaryColor">#005992</color>
     <color name="greyColor">#d3d3d3</color>
 
 </resources>

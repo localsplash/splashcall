@@ -19,6 +19,8 @@ import com.relevantAds.splashcall.views.LoadingProgressDialogue;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.linphone.core.Core;
+import org.linphone.core.Factory;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -37,6 +39,7 @@ public class SplashScreen extends AppCompatActivity {
     private ApiInterface apiService;
     private Call<ResponseBody> call;
     public LoadingProgressDialogue loadingProgressDialogue;
+    public Core core;
 
 
     @Override
@@ -45,6 +48,11 @@ public class SplashScreen extends AppCompatActivity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_splash_screen);
+
+        Factory factory = Factory.instance();
+        factory.setDebugMode(true, "Hello Linphone");
+        core = factory.createCore(null,null,SplashScreen.this);
+        core.start();
 
         deviceDataPrefs = getSharedPreferences(DeviceData.DEVICE_DATA_PREFERENCES, Context.MODE_PRIVATE);
         generatedUUID = generateUUID(SplashScreen.this);
